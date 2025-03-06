@@ -1,6 +1,6 @@
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
@@ -50,8 +50,8 @@ function Calendar({
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
-        caption_dropdowns: "flex justify-center gap-1 relative items-center my-1",
-        dropdown: "relative cursor-pointer rounded-md px-2 py-1 hover:bg-accent text-sm font-medium",
+        caption_dropdowns: "flex justify-center gap-1 relative items-center my-1 w-full",
+        dropdown: "relative cursor-pointer rounded-md px-2 py-1 hover:bg-accent text-sm font-medium flex items-center justify-between",
         dropdown_month: "flex-1",
         dropdown_year: "flex-1",
         dropdown_icon: "h-4 w-4 ml-1 opacity-50",
@@ -60,6 +60,17 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        Dropdown: ({ value, onChange, children, ...props }) => {
+          return (
+            <div {...props} className={cn("relative", props.className)}>
+              <div className="flex items-center justify-between gap-1">
+                <span>{value}</span>
+                <ChevronsUpDown className="h-3 w-3 opacity-50" />
+              </div>
+              {children}
+            </div>
+          )
+        },
       }}
       captionLayout="dropdown"
       fromYear={1920}

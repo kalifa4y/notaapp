@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, ArrowLeft, Calendar } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 import { fr } from "date-fns/locale";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -31,13 +31,31 @@ const educationLevels = [
   { value: "university", label: "Université" },
 ];
 
+// Generate arrays for days, months, and years
+const days = Array.from({ length: 31 }, (_, i) => i + 1);
+const months = [
+  { value: "0", label: "Janvier" },
+  { value: "1", label: "Février" },
+  { value: "2", label: "Mars" },
+  { value: "3", label: "Avril" },
+  { value: "4", label: "Mai" },
+  { value: "5", label: "Juin" },
+  { value: "6", label: "Juillet" },
+  { value: "7", label: "Août" },
+  { value: "8", label: "Septembre" },
+  { value: "9", label: "Octobre" },
+  { value: "10", label: "Novembre" },
+  { value: "11", label: "Décembre" },
+];
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: currentYear - 1919 }, (_, i) => currentYear - i - 12);
+
 // Calculate minimum and maximum dates for birthdate validation
-const currentDate = new Date();
 const minDate = new Date(1920, 0, 1);
 const maxDate = new Date(
-  currentDate.getFullYear() - 12, // Assuming minimum age is 12
-  currentDate.getMonth(),
-  currentDate.getDate()
+  currentYear - 12, // Assuming minimum age is 12
+  new Date().getMonth(),
+  new Date().getDate()
 );
 
 const Register = () => {
@@ -48,9 +66,67 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [birthDay, setBirthDay] = useState<number | undefined>(undefined);
+  const [birthMonth, setBirthMonth] = useState<string | undefined>(undefined);
+  const [birthYear, setBirthYear] = useState<number | undefined>(undefined);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  // Update date when individual components change
+  const updateDate = (day?: number, month?: string, year?: number) => {
+    const newDay = day !== undefined ? day : birthDay;
+    const newMonth = month !== undefined ? month : birthMonth;
+    const newYear = year !== undefined ? year : birthYear;
+    
+    if (newDay && newMonth !== undefined && newYear) {
+      const monthIndex = parseInt(newMonth);
+      const newDate = new Date(newYear, monthIndex, newDay);
+      
+      // Adjust if the day is invalid for the month (e.g., February 30)
+      const adjustedDate = new Date(newYear, monthIndex, newDay);
+      if (adjustedDate.getDate() !== newDay) {
+        // If day is invalid, set to last day of month
+        adjustedDate.setDate(0);
+      }
+      
+      setBirthDate(adjustedDate);
+    }
+  };
+
+  // Update individual date components when calendar date changes
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      setBirthDate(date);
+      setBirthDay(date.getDate());
+      setBirthMonth(date.getMonth().toString());
+      setBirthYear(date.getFullYear());
+    } else {
+      setBirthDate(undefined);
+      setBirthDay(undefined);
+      setBirthMonth(undefined);
+      setBirthYear(undefined);
+    }
+  };
+
+  // Update birthDate when individual fields change
+  const handleDayChange = (value: string) => {
+    const day = parseInt(value);
+    setBirthDay(day);
+    updateDate(day, undefined, undefined);
+  };
+
+  const handleMonthChange = (value: string) => {
+    setBirthMonth(value);
+    updateDate(undefined, value, undefined);
+  };
+
+  const handleYearChange = (value: string) => {
+    const year = parseInt(value);
+    setBirthYear(year);
+    updateDate(undefined, undefined, year);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,76 +204,86 @@ const Register = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="birthDate">Date de naissance</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="birthDate"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !birthDate && "text-muted-foreground"
-                      )}
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {birthDate ? (
-                        format(birthDate, "dd MMMM yyyy", { locale: fr })
-                      ) : (
-                        <span>Sélectionnez votre date de naissance</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-                      <h4 className="font-medium text-sm">
-                        Sélectionnez votre date de naissance
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Utilisez le calendrier ci-dessous pour choisir votre date de naissance.
-                        Vous pouvez naviguer facilement entre les mois et les années.
-                      </p>
-                    </div>
-                    <CalendarComponent
-                      mode="single"
-                      selected={birthDate}
-                      onSelect={setBirthDate}
-                      initialFocus
-                      disabled={(date) => date > maxDate || date < minDate}
-                      defaultMonth={birthDate || new Date(2000, 0, 1)}
-                      fromYear={1920}
-                      toYear={maxDate.getFullYear()}
-                      captionLayout="dropdown"
-                      showOutsideDays={false}
-                      locale={fr}
-                      className="p-3"
-                    />
-                    <div className="p-2 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setBirthDate(undefined)}
+                <Label>Date de naissance</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Select value={birthDay?.toString()} onValueChange={handleDayChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Jour" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {days.map((day) => (
+                        <SelectItem key={`day-${day}`} value={day.toString()}>
+                          {day}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={birthMonth} onValueChange={handleMonthChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Mois" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={`month-${month.value}`} value={month.value}>
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={birthYear?.toString()} onValueChange={handleYearChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Année" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[15rem] overflow-y-auto">
+                      {years.map((year) => (
+                        <SelectItem key={`year-${year}`} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center mt-2">
+                  <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        type="button"
+                        className="ml-auto text-xs flex items-center"
                       >
-                        Effacer
+                        <CalendarIcon className="h-3 w-3 mr-1" />
+                        Utiliser le calendrier
                       </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        onClick={() => {
-                          if (!birthDate) {
-                            // Set a default birth date if none is selected (e.g., Jan 1, 2000)
-                            setBirthDate(new Date(2000, 0, 1));
-                          }
-                          document.body.click(); // Close the popover
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                        <h4 className="font-medium text-sm">
+                          Sélectionnez votre date de naissance
+                        </h4>
+                      </div>
+                      <Calendar
+                        mode="single"
+                        selected={birthDate}
+                        onSelect={(date) => {
+                          handleCalendarSelect(date);
+                          setShowCalendar(false);
                         }}
-                      >
-                        Appliquer
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Utilisez le menu déroulant pour sélectionner facilement le mois et l'année.
-                </p>
+                        initialFocus
+                        disabled={(date) => date > maxDate || date < minDate}
+                        defaultMonth={birthDate || new Date(2000, 0, 1)}
+                        fromYear={1920}
+                        toYear={maxDate.getFullYear()}
+                        captionLayout="dropdown"
+                        showOutsideDays={false}
+                        locale={fr}
+                        className="p-3"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               
               <div className="space-y-2">
