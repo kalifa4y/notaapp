@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft, Calendar } from "lucide-react";
@@ -31,6 +30,15 @@ const educationLevels = [
   { value: "highschool", label: "Lycée" },
   { value: "university", label: "Université" },
 ];
+
+// Calculate minimum and maximum dates for birthdate validation
+const currentDate = new Date();
+const minDate = new Date(1920, 0, 1);
+const maxDate = new Date(
+  currentDate.getFullYear() - 12, // Assuming minimum age is 12
+  currentDate.getMonth(),
+  currentDate.getDate()
+);
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -124,6 +132,7 @@ const Register = () => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
+                      id="birthDate"
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
@@ -132,23 +141,63 @@ const Register = () => {
                     >
                       <Calendar className="mr-2 h-4 w-4" />
                       {birthDate ? (
-                        format(birthDate, "PPP", { locale: fr })
+                        format(birthDate, "dd MMMM yyyy", { locale: fr })
                       ) : (
-                        <span>Sélectionnez une date</span>
+                        <span>Sélectionnez votre date de naissance</span>
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                      <h4 className="font-medium text-sm">
+                        Sélectionnez votre date de naissance
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Utilisez le calendrier ci-dessous pour choisir votre date de naissance.
+                        Vous pouvez naviguer facilement entre les mois et les années.
+                      </p>
+                    </div>
                     <CalendarComponent
                       mode="single"
                       selected={birthDate}
                       onSelect={setBirthDate}
                       initialFocus
-                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                      className={cn("p-3 pointer-events-auto")}
+                      disabled={(date) => date > maxDate || date < minDate}
+                      defaultMonth={birthDate || new Date(2000, 0, 1)}
+                      fromYear={1920}
+                      toYear={maxDate.getFullYear()}
+                      captionLayout="dropdown"
+                      showOutsideDays={false}
+                      locale={fr}
+                      className="p-3"
                     />
+                    <div className="p-2 border-t border-gray-200 dark:border-gray-700 flex justify-between">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setBirthDate(undefined)}
+                      >
+                        Effacer
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => {
+                          if (!birthDate) {
+                            // Set a default birth date if none is selected (e.g., Jan 1, 2000)
+                            setBirthDate(new Date(2000, 0, 1));
+                          }
+                          document.body.click(); // Close the popover
+                        }}
+                      >
+                        Appliquer
+                      </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Utilisez le menu déroulant pour sélectionner facilement le mois et l'année.
+                </p>
               </div>
               
               <div className="space-y-2">
