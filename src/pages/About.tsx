@@ -1,7 +1,6 @@
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Graduation, School, Award, UserCheck, CheckCheck, Brain } from 'lucide-react';
+import { GraduationCap, School, Award, UserCheck, CheckCheck, Brain } from 'lucide-react';
 
 const About = () => {
   return (
@@ -68,7 +67,7 @@ const About = () => {
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mr-4">
                     <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <Graduation className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+                      <GraduationCap className="h-6 w-6 text-blue-500 dark:text-blue-400" />
                     </div>
                   </div>
                   <div>
