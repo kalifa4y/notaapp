@@ -41,8 +41,19 @@ const mockBacTypes = [
   { value: "professionnel", label: "Bac Professionnel" },
 ];
 
+// Update the type definition by adding an optional mention property to all result objects
+type ResultData = {
+  status: string;
+  name: string;
+  placeNumber: string;
+  result: string;
+  average: string;
+  mention?: string; // Make mention optional
+  subjects: { name: string; grade: string; }[];
+}
+
 // Mock exam results for demonstration
-const mockResults = {
+const mockResults: Record<'success' | 'failure', ResultData> = {
   success: {
     status: "success",
     name: "Traoré Aminata",
