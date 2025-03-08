@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,7 @@ import { fr } from "date-fns/locale";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock education levels
 const educationLevels = [
@@ -73,7 +73,11 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   // Update date when individual components change
   const updateDate = (day?: number, month?: string, year?: number) => {
     const newDay = day !== undefined ? day : birthDay;
@@ -128,19 +132,101 @@ const Register = () => {
     updateDate(undefined, undefined, year);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Validate required fields
+    if (!firstName.trim()) newErrors.firstName = "Le prénom est requis";
+    if (!lastName.trim()) newErrors.lastName = "Le nom est requis";
+    
+    // Email validation
+    if (!email.trim()) {
+      newErrors.email = "L'email est requis";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Format d'email invalide";
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = "Le mot de passe est requis";
+    } else if (password.length < 8) {
+      newErrors.password = "Le mot de passe doit contenir au moins 8 caractères";
+    }
+    
+    // Confirm password validation
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+    }
+    
+    // Birth date validation
+    if (!birthDate) {
+      newErrors.birthDate = "La date de naissance est requise";
+    } else {
+      // Check if user is at least 12 years old
+      const today = new Date();
+      const minAgeDate = new Date(
+        today.getFullYear() - 12,
+        today.getMonth(),
+        today.getDate()
+      );
+      
+      if (birthDate > minAgeDate) {
+        newErrors.birthDate = "Vous devez avoir au moins 12 ans";
+      }
+    }
+    
+    // Education level validation
+    if (!educationLevel) {
+      newErrors.educationLevel = "Le niveau d'études est requis";
+    }
+    
+    // Terms agreement validation
+    if (!agreeTerms) {
+      newErrors.agreeTerms = "Vous devez accepter les conditions d'utilisation";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle registration logic here
-    console.log({
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-      educationLevel,
-      birthDate,
-      agreeTerms,
-    });
+    
+    if (!validateForm()) {
+      toast({
+        title: "Erreur de validation",
+        description: "Veuillez corriger les erreurs dans le formulaire",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Show success message
+      toast({
+        title: "Compte créé avec succès",
+        description: "Vous allez être redirigé vers la page de connexion",
+      });
+      
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+      
+    } catch (error) {
+      toast({
+        title: "Erreur lors de l'inscription",
+        description: "Un problème est survenu, veuillez réessayer",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -174,8 +260,12 @@ const Register = () => {
                     placeholder="Prénom"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    className={errors.firstName ? "border-red-500" : ""}
                     required
                   />
+                  {errors.firstName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -186,8 +276,12 @@ const Register = () => {
                     placeholder="Nom"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    className={errors.lastName ? "border-red-500" : ""}
                     required
                   />
+                  {errors.lastName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                  )}
                 </div>
               </div>
               
@@ -199,15 +293,22 @@ const Register = () => {
                   placeholder="exemple@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className={errors.email ? "border-red-500" : ""}
                   required
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
               </div>
               
               <div className="space-y-2">
                 <Label>Date de naissance</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  <Select value={birthDay?.toString()} onValueChange={handleDayChange}>
-                    <SelectTrigger>
+                  <Select 
+                    value={birthDay?.toString()} 
+                    onValueChange={handleDayChange}
+                  >
+                    <SelectTrigger className={errors.birthDate ? "border-red-500" : ""}>
                       <SelectValue placeholder="Jour" />
                     </SelectTrigger>
                     <SelectContent>
@@ -219,8 +320,11 @@ const Register = () => {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={birthMonth} onValueChange={handleMonthChange}>
-                    <SelectTrigger>
+                  <Select 
+                    value={birthMonth} 
+                    onValueChange={handleMonthChange}
+                  >
+                    <SelectTrigger className={errors.birthDate ? "border-red-500" : ""}>
                       <SelectValue placeholder="Mois" />
                     </SelectTrigger>
                     <SelectContent>
@@ -232,8 +336,11 @@ const Register = () => {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={birthYear?.toString()} onValueChange={handleYearChange}>
-                    <SelectTrigger>
+                  <Select 
+                    value={birthYear?.toString()} 
+                    onValueChange={handleYearChange}
+                  >
+                    <SelectTrigger className={errors.birthDate ? "border-red-500" : ""}>
                       <SelectValue placeholder="Année" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[15rem] overflow-y-auto">
@@ -245,6 +352,9 @@ const Register = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                {errors.birthDate && (
+                  <p className="text-red-500 text-xs mt-1">{errors.birthDate}</p>
+                )}
 
                 <div className="flex items-center mt-2">
                   <Popover open={showCalendar} onOpenChange={setShowCalendar}>
@@ -288,8 +398,11 @@ const Register = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="educationLevel">Niveau d'études</Label>
-                <Select value={educationLevel} onValueChange={setEducationLevel}>
-                  <SelectTrigger>
+                <Select 
+                  value={educationLevel} 
+                  onValueChange={setEducationLevel}
+                >
+                  <SelectTrigger className={errors.educationLevel ? "border-red-500" : ""}>
                     <SelectValue placeholder="Sélectionnez votre niveau" />
                   </SelectTrigger>
                   <SelectContent>
@@ -300,6 +413,9 @@ const Register = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.educationLevel && (
+                  <p className="text-red-500 text-xs mt-1">{errors.educationLevel}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -311,8 +427,8 @@ const Register = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className={errors.password ? "border-red-500 pr-10" : "pr-10"}
                     required
-                    className="pr-10"
                   />
                   <button
                     type="button"
@@ -322,6 +438,9 @@ const Register = () => {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -333,8 +452,8 @@ const Register = () => {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
                     required
-                    className="pr-10"
                   />
                   <button
                     type="button"
@@ -344,6 +463,9 @@ const Register = () => {
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+                )}
               </div>
               
               <div className="flex items-start">
@@ -351,6 +473,7 @@ const Register = () => {
                   id="terms"
                   checked={agreeTerms}
                   onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
+                  className={errors.agreeTerms ? "border-red-500" : ""}
                   required
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-600 dark:text-gray-400">
@@ -364,9 +487,12 @@ const Register = () => {
                   </Link>
                 </label>
               </div>
+              {errors.agreeTerms && (
+                <p className="text-red-500 text-xs mt-1">{errors.agreeTerms}</p>
+              )}
               
-              <Button type="submit" className="w-full">
-                S'inscrire
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Création en cours..." : "S'inscrire"}
               </Button>
             </form>
             
