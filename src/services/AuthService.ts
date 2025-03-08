@@ -107,7 +107,7 @@ class AuthService {
       
       // Créer un objet utilisateur sans le mot de passe pour le stockage
       const authenticatedUser: User = {
-        id: user.id,
+        id: user.id as string, // Cast id to string since it might not be in RegisterData type
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
