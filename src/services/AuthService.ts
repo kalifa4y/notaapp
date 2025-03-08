@@ -1,4 +1,3 @@
-
 // Types pour les utilisateurs
 export interface User {
   id: string;
@@ -17,6 +16,7 @@ export interface RegisterData {
   password: string;
   birthDate: Date;
   educationLevel: string;
+  id?: string; // Added optional id field
 }
 
 // Interface pour la connexion
@@ -107,7 +107,7 @@ class AuthService {
       
       // Créer un objet utilisateur sans le mot de passe pour le stockage
       const authenticatedUser: User = {
-        id: user.id as string, // Cast id to string since it might not be in RegisterData type
+        id: user.id || Date.now().toString(), // Use the id if it exists, otherwise generate a new one
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
