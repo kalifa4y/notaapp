@@ -1,3 +1,4 @@
+
 // Types pour les utilisateurs
 export interface User {
   id: string;

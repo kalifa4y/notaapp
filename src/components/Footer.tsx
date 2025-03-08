@@ -51,11 +51,6 @@ const Footer = () => {
                   Services Premium
                 </Link>
               </li>
-              <li>
-                <Link to="/services/digital-stamps" className="text-gray-600 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 text-sm">
-                  Timbres Numériques
-                </Link>
-              </li>
             </ul>
           </div>
 

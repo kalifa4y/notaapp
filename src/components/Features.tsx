@@ -1,5 +1,5 @@
 
-import { CheckCircle, Award, BookOpen, CreditCard } from 'lucide-react';
+import { CheckCircle, Award, BookOpen } from 'lucide-react';
 
 const Features = () => {
   const features = [
@@ -17,11 +17,6 @@ const Features = () => {
       icon: <BookOpen className="h-10 w-10 text-blue-500" />,
       title: "Ressources d'entraînement",
       description: "Préparez-vous efficacement grâce à nos exercices personnalisés, annales et corrections détaillées."
-    },
-    {
-      icon: <CreditCard className="h-10 w-10 text-blue-500" />,
-      title: "Timbres numériques",
-      description: "Achetez des timbres numériques pour formaliser vos demandes de documents officiels sans vous déplacer."
     }
   ];
 
@@ -37,12 +32,12 @@ const Features = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Tout ce dont vous avez besoin pour réussir
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
             Découvrez les fonctionnalités qui rendent Nota App indispensable pour votre parcours académique
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div 
               key={index}

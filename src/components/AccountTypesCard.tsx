@@ -7,7 +7,6 @@ const AccountTypesCard = () => {
   const basicFeatures = [
     "Consultation des résultats d'examens",
     "Postulation aux concours/examens",
-    "Achat de timbres numériques",
     "Tableau de bord personnalisé",
     "Accès aux exercices d'entraînement"
   ];
