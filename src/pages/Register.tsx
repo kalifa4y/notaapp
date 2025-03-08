@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft, Calendar as CalendarIcon } from "lucide-react";
@@ -23,6 +24,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import AuthService from "@/services/AuthService";
 
 // Mock education levels
 const educationLevels = [
@@ -204,21 +206,39 @@ const Register = () => {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!birthDate) {
+        throw new Error("Date de naissance manquante");
+      }
       
-      // Show success message
-      toast({
-        title: "Compte créé avec succès",
-        description: "Vous allez être redirigé vers la page de connexion",
+      const registerResult = await AuthService.register({
+        firstName,
+        lastName,
+        email,
+        password,
+        birthDate,
+        educationLevel
       });
       
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
-      
+      if (registerResult.success) {
+        // Show success message
+        toast({
+          title: "Compte créé avec succès",
+          description: "Vous allez être redirigé vers la page de connexion",
+        });
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        toast({
+          title: "Erreur lors de l'inscription",
+          description: registerResult.message || "Un problème est survenu, veuillez réessayer",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error("Erreur lors de l'inscription:", error);
       toast({
         title: "Erreur lors de l'inscription",
         description: "Un problème est survenu, veuillez réessayer",
